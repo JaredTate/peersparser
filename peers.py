@@ -6,9 +6,8 @@ def parse_peers_dat(filepath):
     with open(filepath, 'rb') as file:
         data = file.read()
 
-    ip_addresses = set()  # Use a set to store unique IP addresses
-    ipv4_count = 0
-    ipv6_count = 0
+    ipv4_addresses = set()  # Use a set to store unique IPv4 addresses
+    ipv6_addresses = set()  # Use a set to store unique IPv6 addresses
     offset = 0
 
     while offset < len(data):
@@ -20,15 +19,13 @@ def parse_peers_dat(filepath):
             if net_addr[0] == 0:
                 # IPv4 address
                 ip = socket.inet_ntop(socket.AF_INET, net_addr[1:5])
-                ipv4_count += 1
+                ipv4_addresses.add(ip)  # Add the IPv4 address to the set
             elif net_addr[0] == 1:
                 # IPv6 address
                 ip = socket.inet_ntop(socket.AF_INET6, net_addr[1:17])
-                ipv6_count += 1
+                ipv6_addresses.add(ip)  # Add the IPv6 address to the set
             else:
                 raise ValueError("Invalid IP address version")
-            
-            ip_addresses.add(ip)  # Add the IP address to the set
         except (struct.error, socket.error, ValueError):
             # Skip invalid entries
             pass
@@ -36,19 +33,25 @@ def parse_peers_dat(filepath):
         # Move to the next network address
         offset += 30
 
-    return ip_addresses, ipv4_count, ipv6_count
+    return ipv4_addresses, ipv6_addresses
 
 # Specify the path to the peers.dat file
-peers_dat_path = '/Users/jt/Code/peers.dat'
+peers_dat_path = '/Users/jt/Code/peersparser/peers.dat'
 
 # Parse the peers.dat file
-unique_ip_addresses, ipv4_count, ipv6_count = parse_peers_dat(peers_dat_path)
+unique_ipv4_addresses, unique_ipv6_addresses = parse_peers_dat(peers_dat_path)
 
 # Display the IP addresses
-for ip in unique_ip_addresses:
+print("IPv4 Addresses:")
+for ip in unique_ipv4_addresses:
     print(ip)
 
-# Display the count of unique IP addresses
-print(f"\nTotal Unique DGB Peers Seen By This Node: {len(unique_ip_addresses)}")
-print(f"Total IPv4 Peers: {ipv4_count}")
-print(f"Total IPv6 Peers: {ipv6_count}")
+print("\nIPv6 Addresses:")
+for ip in unique_ipv6_addresses:
+    print(ip)
+
+# Display the counts of unique IPv4 and IPv6 addresses
+total_unique_peers = len(unique_ipv4_addresses) + len(unique_ipv6_addresses)
+print(f"\nTotal Unique DGB Peers Seen By This Node: {total_unique_peers}")
+print(f"Total Unique IPv4 Peers: {len(unique_ipv4_addresses)}")
+print(f"Total Unique IPv6 Peers: {len(unique_ipv6_addresses)}")
