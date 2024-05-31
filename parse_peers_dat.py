@@ -18,6 +18,7 @@ def parse_peers_dat(filepath):
 
         # Parse peer entries
         offset = 50
+        unique_addresses = set()
         ipv4_addresses = set()
         ipv6_addresses = set()
 
@@ -25,10 +26,12 @@ def parse_peers_dat(filepath):
             peer_data = data[offset:offset+62]
             ip = parse_ip_address(peer_data[16:32])
             if ip is not None:
-                if ip.version == 4:
-                    ipv4_addresses.add(ip)
-                elif ip.version == 6:
-                    ipv6_addresses.add(ip)
+                if ip.ip not in unique_addresses:
+                    unique_addresses.add(ip.ip)
+                    if ip.version == 4:
+                        ipv4_addresses.add(ip)
+                    elif ip.version == 6:
+                        ipv6_addresses.add(ip)
             offset += 62
 
         # Verify data integrity
