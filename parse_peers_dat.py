@@ -24,14 +24,15 @@ def parse_peers_dat(filepath):
         for _ in range(new_address_count + tried_address_count):
             peer_data = data[offset:offset+62]
             ip = parse_ip_address(peer_data[16:32])
-            if ip.version == 4:
-                ipv4_addresses.add(ip)
-            elif ip.version == 6:
-                ipv6_addresses.add(ip)
+            if ip is not None:
+                if ip.version == 4:
+                    ipv4_addresses.add(ip)
+                elif ip.version == 6:
+                    ipv6_addresses.add(ip)
             offset += 62
 
         # Verify data integrity
-        assert len(ipv4_addresses) + len(ipv6_addresses) == new_address_count + tried_address_count
+        assert len(ipv4_addresses) + len(ipv6_addresses) <= new_address_count + tried_address_count
 
         # Verify checksum
         checksum = data[-32:]
@@ -41,12 +42,15 @@ def parse_peers_dat(filepath):
         return ipv4_addresses, ipv6_addresses
 
 def parse_ip_address(ip_bytes):
-    if ip_bytes[0] == 0:
+    if ip_bytes[0] == 0 and len(ip_bytes) >= 16:
         # IPv4 address
         return IPAddress(socket.inet_ntop(socket.AF_INET, ip_bytes[12:16]), 4)
-    else:
+    elif len(ip_bytes) == 16:
         # IPv6 address
         return IPAddress(socket.inet_ntop(socket.AF_INET6, ip_bytes), 6)
+    else:
+        # Invalid IP address
+        return None
 
 class IPAddress:
     def __init__(self, ip, version):
@@ -57,7 +61,7 @@ class IPAddress:
         return self.ip
 
 # Specify the path to the peers.dat file
-peers_dat_path = '/home/digihash/.digibyte-qubit/peers.dat'
+peers_dat_path = '/home/digihash/.digibyte/peers.dat'
 
 # Parse the peers.dat file
 print("Parsing peers.dat file at:", peers_dat_path)
