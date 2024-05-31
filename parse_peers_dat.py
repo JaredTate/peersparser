@@ -42,7 +42,10 @@ def parse_peers_dat(filepath):
         return ipv4_addresses, ipv6_addresses
 
 def parse_ip_address(ip_bytes):
-    if ip_bytes[0] == 0 and len(ip_bytes) >= 16:
+    if not ip_bytes:
+        # Empty byte string
+        return None
+    elif ip_bytes[0] == 0 and len(ip_bytes) >= 16:
         # IPv4 address
         return IPAddress(socket.inet_ntop(socket.AF_INET, ip_bytes[12:16]), 4)
     elif len(ip_bytes) == 16:
