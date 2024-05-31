@@ -67,7 +67,7 @@ class IPAddress:
         return self.ip
 
 # Specify the path to the peers.dat file
-peers_dat_path = '/home/digihash/.digibyte-qubit/peers.dat'
+peers_dat_path = '/home/digihash/.digibyte-scrypt/peers.dat'
 
 # Parse the peers.dat file
 print("Parsing peers.dat file at:", peers_dat_path)
