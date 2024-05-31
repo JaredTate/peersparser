@@ -14,7 +14,7 @@ def parse_peers_dat(filepath):
         try:
             # Read the network address
             net_addr = data[offset:offset+16]
-            
+
             # Extract the IP address
             if net_addr[0] == 0:
                 # IPv4 address
@@ -29,14 +29,14 @@ def parse_peers_dat(filepath):
         except (struct.error, socket.error, ValueError):
             # Skip invalid entries
             pass
-        
+
         # Move to the next network address
         offset += 30
 
     return ipv4_addresses, ipv6_addresses
 
 # Specify the path to the peers.dat file
-peers_dat_path = '/Users/jt/Code/peersparser/peers.dat'
+peers_dat_path = '/path/to/your/peers.dat'
 
 # Parse the peers.dat file
 unique_ipv4_addresses, unique_ipv6_addresses = parse_peers_dat(peers_dat_path)
@@ -52,6 +52,6 @@ for ip in unique_ipv6_addresses:
 
 # Display the counts of unique IPv4 and IPv6 addresses
 total_unique_peers = len(unique_ipv4_addresses) + len(unique_ipv6_addresses)
-print(f"\nTotal Unique DGB Peers Seen By This Node: {total_unique_peers}")
-print(f"Total Unique IPv4 Peers: {len(unique_ipv4_addresses)}")
-print(f"Total Unique IPv6 Peers: {len(unique_ipv6_addresses)}")
+print("\nTotal Unique DGB Peers Seen By This Node: {}".format(total_unique_peers))
+print("Total Unique IPv4 Peers: {}".format(len(unique_ipv4_addresses)))
+print("Total Unique IPv6 Peers: {}".format(len(unique_ipv6_addresses)))
