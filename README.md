@@ -2,6 +2,10 @@
 
 This Python script parses the `peers.dat` file from a Bitcoin or DigiByte directory and displays the unique IPv4 and IPv6 addresses of the peers seen by the node. It also provides counts of the total unique peers, unique IPv4 peers, and unique IPv6 peers.
 
+The `peers.dat` file contains addresses and connection statistics of peers but does not contain any personally identifiable data. By looking at how many peers your local node has ever connected directly to we can achieve a rough metric for determining how decentralized a blockchain network may actually be. This does not mean all unique peers are currently active and if your node has been around for a long time this will be higher.
+
+I will add more stats to this script as I think of it.
+
 ## Prerequisites
 
 - Python 3.x installed on your system
