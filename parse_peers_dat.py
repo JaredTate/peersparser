@@ -1,44 +1,66 @@
 import os
 import socket
 import struct
+import hashlib
 
 def parse_peers_dat(filepath):
     with open(filepath, 'rb') as file:
         data = file.read()
+        print("File read successfully. Data length:", len(data))
 
-    ipv4_addresses = set()  # Use a set to store unique IPv4 addresses
-    ipv6_addresses = set()  # Use a set to store unique IPv6 addresses
-    offset = 0
+        # Parse header
+        message_bytes = data[:4]
+        version = data[4]
+        key_size = data[5]
+        new_address_count = struct.unpack("<I", data[38:42])[0]
+        tried_address_count = struct.unpack("<I", data[42:46])[0]
+        new_bucket_count = struct.unpack("<I", data[46:50])[0] ^ (1 << 30)
 
-    while offset < len(data):
-        try:
-            # Read the network address
-            net_addr = data[offset:offset+16]
+        # Parse peer entries
+        offset = 50
+        ipv4_addresses = set()
+        ipv6_addresses = set()
 
-            # Extract the IP address
-            if net_addr[0] == 0:
-                # IPv4 address
-                ip = socket.inet_ntop(socket.AF_INET, net_addr[1:5])
-                ipv4_addresses.add(ip)  # Add the IPv4 address to the set
-            elif net_addr[0] == 1:
-                # IPv6 address
-                ip = socket.inet_ntop(socket.AF_INET6, net_addr[1:17])
-                ipv6_addresses.add(ip)  # Add the IPv6 address to the set
-            else:
-                raise ValueError("Invalid IP address version")
-        except (struct.error, socket.error, ValueError):
-            # Skip invalid entries
-            pass
+        for _ in range(new_address_count + tried_address_count):
+            peer_data = data[offset:offset+62]
+            ip = parse_ip_address(peer_data[16:32])
+            if ip.version == 4:
+                ipv4_addresses.add(ip)
+            elif ip.version == 6:
+                ipv6_addresses.add(ip)
+            offset += 62
 
-        # Move to the next network address
-        offset += 30
+        # Verify data integrity
+        assert len(ipv4_addresses) + len(ipv6_addresses) == new_address_count + tried_address_count
 
-    return ipv4_addresses, ipv6_addresses
+        # Verify checksum
+        checksum = data[-32:]
+        calculated_checksum = hashlib.sha256(hashlib.sha256(data[:-32]).digest()).digest()
+        assert checksum == calculated_checksum
+
+        return ipv4_addresses, ipv6_addresses
+
+def parse_ip_address(ip_bytes):
+    if ip_bytes[0] == 0:
+        # IPv4 address
+        return IPAddress(socket.inet_ntop(socket.AF_INET, ip_bytes[12:16]), 4)
+    else:
+        # IPv6 address
+        return IPAddress(socket.inet_ntop(socket.AF_INET6, ip_bytes), 6)
+
+class IPAddress:
+    def __init__(self, ip, version):
+        self.ip = ip
+        self.version = version
+
+    def __repr__(self):
+        return self.ip
 
 # Specify the path to the peers.dat file
-peers_dat_path = '/path/to/your/peers.dat'
+peers_dat_path = '/home/digihash/.digibyte-qubit/peers.dat'
 
 # Parse the peers.dat file
+print("Parsing peers.dat file at:", peers_dat_path)
 unique_ipv4_addresses, unique_ipv6_addresses = parse_peers_dat(peers_dat_path)
 
 # Display the IP addresses
